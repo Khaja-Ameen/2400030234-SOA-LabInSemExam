@@ -1,0 +1,66 @@
+package com.microservices.jwt.controller;
+
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.microservices.jwt.service.JwtService;
+import io.jsonwebtoken.Claims;
+
+@RestController
+@RequestMapping("/api")
+public class JwtController {
+
+    private final JwtService jwtService;
+
+    publicJwtController(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody Map<String, String> data) {
+
+        String username = data.get("username");
+        String password = data.get("password");
+
+        if ("admin".equals(username)
+                && "admin123".equals(password)) {
+
+            String token = jwtService.generateToken(username);
+
+            return ResponseEntity.ok(
+                Map.of("token", token));
+        }
+
+        return ResponseEntity.status(401)
+                .body(Map.of("message", "Invalid credentials"));
+    }
+
+    @PostMapping("/jwt/validate")
+    public ResponseEntity<?> validate(
+            @RequestBody Map<String, String> data) {
+
+        try {
+            String token = data.get("token");
+
+            if (token == null || token.isBlank()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Token is required"));
+            }
+
+            Claims claims = jwtService.validateToken(token);
+
+            return ResponseEntity.ok(
+                Map.of(
+                    "message", "Token Valid",
+                    "username", claims.getSubject()
+                ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401)
+                .body(Map.of("message", "Invalid Token"));
+        }
+    }
+}

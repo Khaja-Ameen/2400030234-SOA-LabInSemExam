@@ -1,0 +1,5 @@
+package com.microservices.jwt.service;
+
+public class JwtController {
+
+}
